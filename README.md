@@ -41,6 +41,14 @@ Generate the list file by:
 ```
 python utils/makecocolist.py
 ```
+Setup the COCO API:   
+```
+git clone https://github.com/cocodataset/cocoapi.git
+cd cocoapi/PythonAPI/
+make
+python setup.py install
+cd ../../
+```
 
 
 ## Train
