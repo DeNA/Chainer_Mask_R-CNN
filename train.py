@@ -110,10 +110,10 @@ def main():
     train_data=TransformDataset(train_data, Transform(mask_rcnn))
     test_data=TransformDataset(test_data, Transform(mask_rcnn))
     train_iter = chainer.iterators.SerialIterator(
-        train_data, batch_size=1)
+        train_data, batch_size=args.batchsize)
     test_iter = chainer.iterators.SerialIterator(
         test_data, batch_size=1, repeat=False, shuffle=False)
-    updater = SubDivisionUpdater(train_iter, optimizer, device=args.gpu)
+    updater = SubDivisionUpdater(train_iter, optimizer, device=args.gpu, subdivisions=args.batchsize)
     trainer = training.Trainer(
         updater, (args.iteration, 'iteration'), out=args.out)
 

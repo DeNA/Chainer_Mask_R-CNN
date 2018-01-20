@@ -5,6 +5,7 @@ from chainer.dataset import convert
 from chainer.dataset import iterator as iterator_module
 from chainer import function, variable
 from chainer.training.updater import StandardUpdater
+from chainer import reporter
 
 class SubDivisionUpdater(StandardUpdater):
 
@@ -27,9 +28,9 @@ class SubDivisionUpdater(StandardUpdater):
         batch = self._iterators['main'].next()
         #print(self._n)
         in_arrays_list = []
-        for i in range(self._n):
-            #in_arrays_list.append(self.converter(batch[i::self._subdivisions], self.device))
-            in_arrays_list.append(self.converter(batch, self.device))
+        for i in range(self._subdivisions):
+            in_arrays_list.append(self.converter(batch[i::self._subdivisions], self.device))
+            #in_arrays_list.append(self.converter(batch, self.device))
         optimizer = self._optimizers['main']
         loss_func = self.loss_func or optimizer.target
         loss_func.cleargrads()
@@ -50,3 +51,23 @@ class SubDivisionUpdater(StandardUpdater):
             loss.backward()
         
         optimizer.update()
+        # minibatch average
+        if isinstance(loss, dict):
+            avg_loss = {k: 0. for k in losses[0].keys()}
+            for loss in losses:
+                for k, v in loss.items():
+                    avg_loss[k] += v
+            #avg_loss = {k: v / float(self._batchsize) for k, v in avg_loss.items()}
+            avg_loss = {k: v / float(len(losses)) for k, v in avg_loss.items()}
+            #avg_loss = {k: v for k, v in avg_loss.items()}
+
+            # report all the loss values
+            for k, v in avg_loss.items():
+                reporter.report({k: v}, loss_func)
+            reporter.report({'loss': sum(list(avg_loss.values()))}, loss_func)
+        else:
+            avg_loss = 0.
+            for loss in losses:
+                avg_loss += loss
+            #avg_loss /= float(self._batchsize)
+            reporter.report({'loss': avg_loss}, loss_func)

@@ -32,14 +32,22 @@ $ pip install cupy==1.0.3
  [ResNet pretrained models](https://github.com/KaimingHe/deep-residual-networks#models)
 ・~/.chainer/dataset/pfnet/chainer/models/　に置く
 
-- COCO 2017 データセット (必須) :
+- COCO 2017 データセット
 COCOデータセットのダウンロードと解凍:   
 ```
 bash getData.sh
 ```
-リストファイルの生成 (必須)
+リストファイルの生成
 ```
 python utils/makecocolist.py
+```
+- COCO APIのセットアップ:   
+```
+git clone https://github.com/cocodataset/cocoapi.git
+cd cocoapi/PythonAPI/
+make
+python setup.py install
+cd ../../
 ```
 
 
