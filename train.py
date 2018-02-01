@@ -1,6 +1,6 @@
 import chainer
 from chainer import training
-from chainer.training import extensions
+from chainer.training import extensions, ParallelUpdater
 from chainer.training.triggers import ManualScheduleTrigger
 from chainer.datasets import TransformDataset
 from chainercv.datasets import VOCBboxDataset, voc_bbox_label_names
@@ -80,6 +80,9 @@ class Transform(object):
         cv2.imwrite("gt_roi.png",mask[0]*255)
         return img, bbox, label, scale, mask
 
+def convert(batch, device):
+    return chainer.dataset.convert.concat_examples(batch, device, padding=-1)
+
 def main():
     args = parse()
     np.random.seed(args.seed)
@@ -114,6 +117,7 @@ def main():
     test_iter = chainer.iterators.SerialIterator(
         test_data, batch_size=1, repeat=False, shuffle=False)
     updater = SubDivisionUpdater(train_iter, optimizer, device=args.gpu, subdivisions=args.batchsize)
+    #updater = ParallelUpdater(train_iter, optimizer, devices={"main": 0, "second": 1}, converter=convert ) #for training with multiple GPUs
     trainer = training.Trainer(
         updater, (args.iteration, 'iteration'), out=args.out)
 
