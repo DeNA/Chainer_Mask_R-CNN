@@ -152,7 +152,7 @@ def main():
          'validation/main/loss',
          ]), trigger=print_interval)
     trainer.extend(extensions.ProgressBar(update_interval=1000))
-    trainer.extend(extensions.dump_graph('main/loss'))
+    #trainer.extend(extensions.dump_graph('main/loss'))
     try:
         trainer.run()
     except:
