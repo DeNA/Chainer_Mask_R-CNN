@@ -41,14 +41,14 @@ class SubDivisionUpdater(StandardUpdater):
             if isinstance(in_arrays, tuple):
                 in_vars = list(variable.Variable(x) for x in in_arrays)
                 loss = loss_func(*in_vars)
-                losses.append(loss)
             elif isinstance(in_arrays, dict):
                 in_vars = {key: variable.Variable(x) for key, x in six.iteritems(in_arrays)}
                 loss = loss_func(in_vars)
-                losses.append(loss)
             else:
                 print(type(in_arrays))
             loss.backward()
+            loss = {k: cuda.to_cpu(v.data) for k, v in loss.items()} # for logging
+            losses.append(loss)
         
         optimizer.update()
         # minibatch average
