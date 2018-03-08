@@ -6,6 +6,7 @@ from chainer.dataset import iterator as iterator_module
 from chainer import function, variable
 from chainer.training.updater import StandardUpdater
 from chainer import reporter
+from chainer import cuda
 
 class SubDivisionUpdater(StandardUpdater):
 
@@ -47,7 +48,8 @@ class SubDivisionUpdater(StandardUpdater):
             else:
                 print(type(in_arrays))
             loss.backward()
-            loss = {k: cuda.to_cpu(v.data) for k, v in loss.items()} # for logging
+            #loss = {k: cuda.to_cpu(v.data) for k, v in loss.items()} # for logging
+            loss = cuda.to_cpu(loss.data)
             losses.append(loss)
         
         optimizer.update()
