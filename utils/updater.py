@@ -71,5 +71,5 @@ class SubDivisionUpdater(StandardUpdater):
             avg_loss = 0.
             for loss in losses:
                 avg_loss += loss
-            #avg_loss /= float(self._batchsize)
+            avg_loss /= float(self._subdivisions)
             reporter.report({'loss': avg_loss}, loss_func)
