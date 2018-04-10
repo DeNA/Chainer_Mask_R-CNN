@@ -24,7 +24,8 @@ $ pip install cupy
 
 
 ## TODOs
-- [ ] Precision Evaluator
+- [x] Precision Evaluator (bbox, VOC metric)
+- [ ] Precision Evaluator (bbox and mask, COCO metric)
 - [ ] Feature Pyramid Network
 - [ ] Pose Estimation
 

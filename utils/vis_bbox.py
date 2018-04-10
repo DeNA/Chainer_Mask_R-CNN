@@ -80,10 +80,11 @@ def vis_bbox(img, bbox, roi, label=None, score=None, mask=None, label_names=None
         caption = list()
         for my in range(14):
             for mx in range(14):
-                mxy = (r[1]+(r[3]-r[1])/14*mx, r[0]+(r[2]-r[0])/14*my)
+                mxy = (int(r[1]+(r[3]-r[1])/14*mx), int(r[0]+(r[2]-r[0])/14*my))
+                mxynext = (int(r[1]+(r[3]-r[1])/14*(mx+1)), int(r[0]+(r[2]-r[0])/14*(my+1)))
                 Mcolor=np.clip((M[my,mx])*1,0,0.5)
                 #print(Mcolor)
-                ax.add_patch(plot.Rectangle(mxy, int((r[3]-r[1])/14)+1,int((r[2]-r[0])/14)+1,
+                ax.add_patch(plot.Rectangle(mxy, mxynext[0]-mxy[0], mxynext[1]-mxy[1],
                 fill=True, linewidth=0,facecolor=COLOR[i%len(COLOR)], alpha=Mcolor))
                 if contour:
                     ax.add_patch(p)

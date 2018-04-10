@@ -14,6 +14,7 @@ import time
 from mask_rcnn_resnet import MaskRCNNResNet
 from coco_dataset import COCODataset
 from mask_rcnn_train_chain import MaskRCNNTrainChain
+from utils.detection_coco_evaluator import DetectionCOCOEvaluator
 import logging
 import traceback
 from utils.updater import SubDivisionUpdater
@@ -136,7 +137,8 @@ def main():
     plot_interval = 160, 'iteration'
     print_interval = 40, 'iteration'
 
-    trainer.extend(extensions.Evaluator(test_iter, model, device=args.gpu), trigger=(args.validation, 'iteration'))
+    #trainer.extend(extensions.Evaluator(test_iter, model, device=args.gpu), trigger=(args.validation, 'iteration'))
+    trainer.extend(DetectionCOCOEvaluator(test_iter, model.mask_rcnn), trigger=(args.validation, 'iteration')) #COCO AP Evaluator with VOC metric
     trainer.extend(chainer.training.extensions.observe_lr(),
                    trigger=log_interval)
     trainer.extend(extensions.LogReport(trigger=log_interval))
@@ -150,6 +152,7 @@ def main():
          'main/rpn_loc_loss',
          'main/rpn_cls_loss',
          'validation/main/loss',
+         'validation/main/map',
          ]), trigger=print_interval)
     trainer.extend(extensions.ProgressBar(update_interval=1000))
     #trainer.extend(extensions.dump_graph('main/loss'))

@@ -4,7 +4,7 @@ import numpy as np
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--gpu', type=int, default=-1)
+    parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--modelfile')
     parser.add_argument('--image', type=str)
     parser.add_argument('--roi_size', '-r', type=int, default=7, help='ROI size for mask head input')
@@ -49,7 +49,7 @@ def main():
     )
     vis_bbox(
         img, roi, roi, label=label, score=score, mask=mask, label_names=coco_label_names, contour=args.contour, labeldisplay=True)
-    #plot.show()
+    plot.show()
     filename = "output.png"
     plot.savefig(filename)
 
