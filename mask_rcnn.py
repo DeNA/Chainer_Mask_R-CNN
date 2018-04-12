@@ -93,7 +93,7 @@ class MaskRCNN(chainer.Chain):
     def predict(self, imgs):
         prepared_imgs = list()
         sizes = list()
-        print("predicting!")
+        #print("predicting!")
         for img in imgs:
             size = img.shape[1:]
             img = self.prepare(img.astype(np.float32))
