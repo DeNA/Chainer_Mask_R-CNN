@@ -9,6 +9,22 @@ from utils.proposal_target_creator import ProposalTargetCreator
 from chainer import computational_graph as c
 from chainercv.links import PixelwiseSoftmaxClassifier
 
+def freeze_bn(model):
+    def disableupdate(block):
+        for name in block._forward:
+            l = getattr(block, name)
+            l.bn1.disable_update()   
+            l.bn2.disable_update()   
+            l.bn3.disable_update()   
+            if name=='a':
+                l.bn4.disable_update()   
+    model.bn1.disable_update()  
+    disableupdate(model.res2)
+    disableupdate(model.res3)
+    disableupdate(model.res4)
+    print("batchnorm update disabled!")
+
+
 class MaskRCNNTrainChain(chainer.Chain):
     def __init__(self, mask_rcnn, rpn_sigma=3., roi_sigma=1., gamma=1,
                  anchor_target_creator=AnchorTargetCreator(),

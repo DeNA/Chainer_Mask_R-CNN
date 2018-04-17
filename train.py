@@ -13,7 +13,7 @@ import time
 #from mask_rcnn_vgg import MaskRCNNVGG16
 from mask_rcnn_resnet import MaskRCNNResNet
 from coco_dataset import COCODataset
-from mask_rcnn_train_chain import MaskRCNNTrainChain
+from mask_rcnn_train_chain import MaskRCNNTrainChain, freeze_bn
 from utils.detection_coco_evaluator import DetectionCOCOEvaluator
 import logging
 import traceback
@@ -40,6 +40,7 @@ def parse():
     parser.add_argument('--gpu', '-g', type=int, default=0)
     parser.add_argument('--lr', '-l', type=float, default=1e-4)
     parser.add_argument('--batchsize', '-b', type=int, default=8)
+    parser.add_argument('--unfreeze_bn', action='store_true', default=False, help='update batchnorm layers')
     parser.add_argument('--out', '-o', default='result',
                         help='Output directory')
     parser.add_argument('--seed', '-s', type=int, default=0)
@@ -133,6 +134,8 @@ def main():
                    trigger=(args.lr_step, 'iteration'))
     if args.resume is not None:
         chainer.serializers.load_npz(args.resume, model.mask_rcnn)
+    if ~args.unfreeze_bn:
+        freeze_bn(model.mask_rcnn.extractor)
     log_interval = 40, 'iteration'
     plot_interval = 160, 'iteration'
     print_interval = 40, 'iteration'

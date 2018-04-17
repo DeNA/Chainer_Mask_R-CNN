@@ -64,6 +64,7 @@ arguments and the default conditions are defined as follows:
 '--gpu', '-g', type=int, default=0   
 '--lr', '-l', type=float, default=1e-4   
 '--batchsize', '-b', type=int, default=8   
+'--unfreeze_bn', action='store_true', default=False, help='update batchnorm layers'
 '--out', '-o', default='result',  help='output directory'   
 '--seed', '-s', type=int, default=0   
 '--roialign', action='store_true', default=True, help='True: ROIAlign, False: ROIpooling'
