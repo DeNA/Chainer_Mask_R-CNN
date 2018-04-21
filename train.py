@@ -66,20 +66,21 @@ class Transform(object):
         elif len(in_data)==4:
             img, bbox, label, i= in_data
         _, H, W = img.shape
-        img = self.net.prepare(img)
+        if chainer.config.train:
+            img = self.net.prepare(img)
         _, o_H, o_W = img.shape
         scale = o_H / H
         if len(bbox)==0:
             return img, [],[],1
         bbox = resize_bbox(bbox, (H, W), (o_H, o_W))
         mask = resize(mask,(o_H, o_W))
-        #horizontal flip
-        img, params = transforms.random_flip(
-            img, x_random=True, return_param=True)
-        bbox = transforms.flip_bbox(
-            bbox, (o_H, o_W), x_flip=params['x_flip'])
-        mask = transforms.flip(mask, x_flip=params['x_flip'])
-        cv2.imwrite("gt_roi.png",mask[0]*255)
+        if chainer.config.train:
+            #horizontal flip
+            img, params = transforms.random_flip(
+                img, x_random=True, return_param=True)
+            bbox = transforms.flip_bbox(
+                bbox, (o_H, o_W), x_flip=params['x_flip'])
+            mask = transforms.flip(mask, x_flip=params['x_flip'])
         return img, bbox, label, scale, mask
 
 def convert(batch, device):
