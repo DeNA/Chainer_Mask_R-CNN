@@ -9,11 +9,20 @@ from chainercv.links.model.faster_rcnn.utils.loc2bbox import loc2bbox
 from chainercv.utils import non_maximum_suppression
 from chainercv.transforms.image.resize import resize
 
+def bbox_yxyx2xywh(bbox):
+    bbox_o = bbox.copy()
+    bbox_o[:, 0] = bbox[:, 1]
+    bbox_o[:, 2] = bbox[:, 3] - bbox[:, 1]
+    bbox_o[:, 1] = bbox[:, 0]
+    bbox_o[:, 3] = bbox[:, 2] - bbox[:, 0]
+    return bbox_o
+
 class MaskRCNN(chainer.Chain):
     def __init__(self, extractor, rpn, head, mean,
                  min_size=600, max_size=1000,
                  loc_normalize_mean=(0., 0., 0., 0.),
                  loc_normalize_std=(0.1, 0.1, 0.2, 0.2),
+                 class_ids=[]
                  ):
         print("MaskRCNN initialization")
         super(MaskRCNN, self).__init__()
@@ -28,6 +37,10 @@ class MaskRCNN(chainer.Chain):
         self.loc_normalize_mean = loc_normalize_mean
         self.loc_normalize_std = loc_normalize_std
         self.use_preset('visualize')
+        if class_ids==[]:
+            raise ValueError('set class ids')
+        self.class_ids = class_ids
+        self.preset = 'visualize'
     @property
     def n_class(self):
         return self.head.n_class
@@ -45,9 +58,11 @@ class MaskRCNN(chainer.Chain):
         if preset == 'visualize':
             self.nms_thresh = 0.3
             self.score_thresh = 0.7
+            self.preset = 'visualize'
         elif preset == 'evaluate':
             self.nms_thresh = 0.3
             self.score_thresh = 0.05
+            self.preset = 'evaluate'
         else:
             raise ValueError('preset must be visualize or evaluate')
 
@@ -56,7 +71,8 @@ class MaskRCNN(chainer.Chain):
         scale = self.min_size / min(H, W)
         if scale * max(H, W) > self.max_size:
             scale = self.max_size / max(H, W)
-        img = resize(img, (int(H * scale), int(W * scale)))
+        if chainer.config.train:
+            img = resize(img, (int(H * scale), int(W * scale)))
         img = (img - self.mean).astype(np.float32, copy=False)
         return img
 
@@ -137,9 +153,12 @@ class MaskRCNN(chainer.Chain):
             raw_prob = cuda.to_cpu(prob)
             raw_mask = cuda.to_cpu(roi_mask)
             bbox, out_roi, label, score, mask = self._suppress(raw_cls_bbox, raw_cls_roi, raw_prob, raw_mask)
-            bboxes.append(bbox)
+            if self.preset = 'evaluate':
+                bboxes.append(bbox_yxyx2xywh(bbox))
+            elif self.preset = 'visualize':
+                bboxes.append(bbox)
             out_rois.append(out_roi)
-            labels.append(label)
+            labels.append([self.class_ids[int(l)-1] for l in label.tolist()])
             scores.append(score)
             masks.append(mask)
 

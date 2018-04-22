@@ -46,7 +46,7 @@ python utils/makecocolist.py
 Setup the COCO API:   
 ```
 git clone https://github.com/waleedka/coco
-cd cocoapi/PythonAPI/
+cd coco/PythonAPI/
 make
 python setup.py install
 cd ../../
