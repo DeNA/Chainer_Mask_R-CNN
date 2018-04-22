@@ -153,9 +153,9 @@ class MaskRCNN(chainer.Chain):
             raw_prob = cuda.to_cpu(prob)
             raw_mask = cuda.to_cpu(roi_mask)
             bbox, out_roi, label, score, mask = self._suppress(raw_cls_bbox, raw_cls_roi, raw_prob, raw_mask)
-            if self.preset = 'evaluate':
+            if self.preset == 'evaluate':
                 bboxes.append(bbox_yxyx2xywh(bbox))
-            elif self.preset = 'visualize':
+            elif self.preset == 'visualize':
                 bboxes.append(bbox)
             out_rois.append(out_roi)
             labels.append([self.class_ids[int(l)-1] for l in label.tolist()])
