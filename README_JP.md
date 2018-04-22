@@ -22,9 +22,11 @@ $ pip install cupy==1.0.3
 - OpenCV   
 
 ## TODOs
-- [ ] Evaluator
+- [x] Precision Evaluator (bbox, VOC metric)
+- [x] Precision Evaluator (bbox, COCO metric)
+- [ ] Precision Evaluator (mask, COCO metric)
 - [ ] Feature Pyramid Network
-- [ ] Pose Estimation
+- [ ] Keypoint Detection
 
 ## ファイル準備
 - 学習済みモデルのダウンロード  
@@ -43,7 +45,7 @@ python utils/makecocolist.py
 ```
 - COCO APIのセットアップ:   
 ```
-git clone https://github.com/cocodataset/cocoapi.git
+git clone https://github.com/waleedka/coco
 cd cocoapi/PythonAPI/
 make
 python setup.py install

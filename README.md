@@ -25,9 +25,10 @@ $ pip install cupy
 
 ## TODOs
 - [x] Precision Evaluator (bbox, VOC metric)
-- [ ] Precision Evaluator (bbox and mask, COCO metric)
+- [x] Precision Evaluator (bbox, COCO metric)
+- [ ] Precision Evaluator (mask, COCO metric)
 - [ ] Feature Pyramid Network
-- [ ] Pose Estimation
+- [ ] Keypoint Detection
 
 ## Prerequisite
 - Download 'ResNet-50-model.caffemodel' from the "OneDrive download" of [ResNet pretrained models](https://github.com/KaimingHe/deep-residual-networks#models) 
@@ -44,13 +45,14 @@ python utils/makecocolist.py
 ```
 Setup the COCO API:   
 ```
-git clone https://github.com/cocodataset/cocoapi.git
+git clone https://github.com/waleedka/coco
 cd cocoapi/PythonAPI/
 make
 python setup.py install
 cd ../../
 ```
-
+note: the official coco repository is not python3 compatible.    
+Use the repository above in order to run our evaluation.    
 
 ## Train
 

@@ -16,6 +16,7 @@ class COCODataset(chainer.dataset.DatasetMixin):
         self.ids = [id_.strip() for id_ in open(data_dir+id_list_file)]
         self.name = name
         self.sizemin = sizemin
+        self.class_ids = sorted(self.coco.getCatIds())
 
     def __len__(self):
         return len(self.ids)
@@ -30,7 +31,7 @@ class COCODataset(chainer.dataset.DatasetMixin):
             annotations = self.coco.loadAnns(anno_ids)
             for a in annotations:
                 if a['bbox'][2] > self.sizemin and a['bbox'][3] > self.sizemin \
-                and a['iscrowd']==0 and a['category_id']<81:
+                and a['iscrowd']==0:
                     annot_labels.append(a['category_id'])
                     annot_bboxes.append(a['bbox'])
                     annot_segs.append(a['segmentation'])

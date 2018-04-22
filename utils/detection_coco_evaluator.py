@@ -92,8 +92,8 @@ class DetectionCOCOEvaluator(chainer.training.extensions.Evaluator):
         elif len(rest_values) == 2:
             gt_bboxes, gt_labels = rest_values
             gt_difficults = None
-        elif len(rest_values) == 4:
-            gt_bboxes, gt_labels, _, _ = rest_values
+        elif len(rest_values) == 5:
+            gt_bboxes, gt_labels, _, _, i = rest_values
             gt_difficults = None
 
         result = eval_detection_coco.eval_detection_coco(

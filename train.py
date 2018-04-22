@@ -14,6 +14,7 @@ import time
 from mask_rcnn_resnet import MaskRCNNResNet
 from coco_dataset import COCODataset
 from mask_rcnn_train_chain import MaskRCNNTrainChain, freeze_bn
+from utils.cocoapi_evaluator import COCOAPIEvaluator
 from utils.detection_coco_evaluator import DetectionCOCOEvaluator
 import logging
 import traceback
@@ -58,13 +59,15 @@ def parse():
     return parser.parse_args()
 
 class Transform(object):
-    def __init__(self, net):
+    def __init__(self, net, labelids):
         self.net = net
+        self.labelids = labelids
     def __call__(self, in_data):
         if len(in_data)==5:
             img, label, bbox, mask, i = in_data
         elif len(in_data)==4:
             img, bbox, label, i= in_data
+        label = [self.labelids.index(l) + 1 for l in label]
         _, H, W = img.shape
         if chainer.config.train:
             img = self.net.prepare(img)
@@ -81,7 +84,7 @@ class Transform(object):
             bbox = transforms.flip_bbox(
                 bbox, (o_H, o_W), x_flip=params['x_flip'])
             mask = transforms.flip(mask, x_flip=params['x_flip'])
-        return img, bbox, label, scale, mask
+        return img, bbox, label, scale, mask, i
 
 def convert(batch, device):
     return chainer.dataset.convert.concat_examples(batch, device, padding=-1)
@@ -95,12 +98,15 @@ def main():
     if args.dataset == 'coco2017':
         train_data = COCODataset()
     test_data = COCODataset(json_file='instances_val2017.json', name='val2017', id_list_file='val2017.txt')
+    train_class_ids =train_data.class_ids
+    test_ids = test_data.ids
+    cocoanns = test_data.coco
     if args.extractor=='vgg16':
         mask_rcnn = MaskRCNNVGG16(n_fg_class=80, pretrained_model=args.pretrained, roi_size=args.roi_size, roi_align = args.roialign)
     elif args.extractor=='resnet50':
-        mask_rcnn = MaskRCNNResNet(n_fg_class=80, pretrained_model=args.pretrained,roi_size=args.roi_size, n_layers=50, roi_align = args.roialign)
+        mask_rcnn = MaskRCNNResNet(n_fg_class=80, pretrained_model=args.pretrained,roi_size=args.roi_size, n_layers=50, roi_align = args.roialign, class_ids=train_class_ids)
     elif args.extractor=='resnet101':
-        mask_rcnn = MaskRCNNResNet(n_fg_class=80, pretrained_model=args.pretrained,roi_size=args.roi_size, n_layers=101, roi_align = args.roialign)
+        mask_rcnn = MaskRCNNResNet(n_fg_class=80, pretrained_model=args.pretrained,roi_size=args.roi_size, n_layers=101, roi_align = args.roialign, class_ids=train_class_ids)
     mask_rcnn.use_preset('evaluate')
     model = MaskRCNNTrainChain(mask_rcnn, gamma=args.gamma, roi_size=args.roi_size)
  
@@ -113,8 +119,8 @@ def main():
     optimizer.setup(model)
     optimizer.add_hook(chainer.optimizer.WeightDecay(rate=0.0001))
 
-    train_data=TransformDataset(train_data, Transform(mask_rcnn))
-    test_data=TransformDataset(test_data, Transform(mask_rcnn))
+    train_data=TransformDataset(train_data, Transform(mask_rcnn, train_class_ids))
+    test_data=TransformDataset(test_data, Transform(mask_rcnn, train_class_ids))
     train_iter = chainer.iterators.SerialIterator(
         train_data, batch_size=args.batchsize)
     test_iter = chainer.iterators.SerialIterator(
@@ -142,7 +148,8 @@ def main():
     print_interval = 40, 'iteration'
 
     #trainer.extend(extensions.Evaluator(test_iter, model, device=args.gpu), trigger=(args.validation, 'iteration'))
-    trainer.extend(DetectionCOCOEvaluator(test_iter, model.mask_rcnn), trigger=(args.validation, 'iteration')) #COCO AP Evaluator with VOC metric
+    #trainer.extend(DetectionCOCOEvaluator(test_iter, model.mask_rcnn), trigger=(args.validation, 'iteration')) #COCO AP Evaluator with VOC metric
+    trainer.extend(COCOAPIEvaluator(test_iter, model.mask_rcnn, test_ids, cocoanns), trigger=(args.validation, 'iteration')) #COCO AP Evaluator
     trainer.extend(chainer.training.extensions.observe_lr(),
                    trigger=log_interval)
     trainer.extend(extensions.LogReport(trigger=log_interval))

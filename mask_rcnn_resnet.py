@@ -39,6 +39,7 @@ class MaskRCNNResNet(MaskRCNN):
                  loc_initialW=None, score_initialW=None,
                  proposal_creator_params=dict(),
                  roi_size=7,
+                 class_ids=[],
                  n_layers=50, 
                  roi_align=True
                  ):
@@ -74,7 +75,7 @@ class MaskRCNNResNet(MaskRCNN):
         super(MaskRCNNResNet, self).__init__(
             extractor, rpn, head,
             mean=np.array([122.7717, 115.9465, 102.9801], dtype=np.float32)[:, None, None],
-            min_size=min_size, max_size=max_size
+            min_size=min_size, max_size=max_size, class_ids=class_ids
         )
 
 class MaskRCNNHead(chainer.Chain):

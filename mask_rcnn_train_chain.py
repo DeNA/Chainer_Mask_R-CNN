@@ -41,7 +41,7 @@ class MaskRCNNTrainChain(chainer.Chain):
         self.decayrate=0.99
         self.avg_loss = None
         self.gamma=gamma
-    def __call__(self, imgs, bboxes, labels, scale, masks):
+    def __call__(self, imgs, bboxes, labels, scale, masks, i):
 
         if isinstance(bboxes, chainer.Variable):
             bboxes = bboxes.data
