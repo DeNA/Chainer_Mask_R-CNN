@@ -21,7 +21,7 @@ class ExtractorResNet(ResNetLayers):
         del self.fc6
         del self.res5
     def __call__(self, x):
-        h = self.conv1(x)
+        h = F.relu(self.bn1(self.conv1(x)))
         h = F.max_pooling_2d(h, ksize=3, stride=2)
         h = self.res2(h)
         h = self.res3(h)
@@ -37,7 +37,6 @@ class MaskRCNNResNet(MaskRCNN):
                  ratios=[0.5 ,1, 2], anchor_scales=[2, 4, 8, 16, 32],
                  initialW=None, rpn_initialW=None,
                  loc_initialW=None, score_initialW=None,
-                 proposal_creator_params=dict(),
                  roi_size=7,
                  class_ids=[],
                  n_layers=50, 
