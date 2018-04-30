@@ -142,7 +142,7 @@ def main():
     if args.resume is not None:
         chainer.serializers.load_npz(args.resume, model.mask_rcnn)
     if ~args.unfreeze_bn:
-        freeze_bn(model.mask_rcnn.extractor)
+        freeze_bn(model.mask_rcnn)
     log_interval = 40, 'iteration'
     plot_interval = 160, 'iteration'
     print_interval = 40, 'iteration'

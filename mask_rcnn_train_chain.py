@@ -17,11 +17,12 @@ def freeze_bn(model):
             l.bn2.disable_update()   
             l.bn3.disable_update()   
             if name=='a':
-                l.bn4.disable_update()   
-    model.bn1.disable_update()  
-    disableupdate(model.res2)
-    disableupdate(model.res3)
-    disableupdate(model.res4)
+                l.bn4.disable_update()
+    model.extractor.bn1.disable_update()  
+    disableupdate(model.extractor.res2)
+    disableupdate(model.extractor.res3)
+    disableupdate(model.extractor.res4)
+    disableupdate(model.head.res5)
     print("batchnorm update disabled!")
 
 

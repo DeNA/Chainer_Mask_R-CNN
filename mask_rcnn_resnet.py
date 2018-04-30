@@ -7,19 +7,39 @@ from mask_rcnn import MaskRCNN
 from chainercv.links.model.faster_rcnn.region_proposal_network import \
     RegionProposalNetwork
 from utils import roi_align_2d
-from chainer.links.model.vision.resnet import BuildingBlock, ResNetLayers
+from chainer.links.model.vision.resnet import BuildingBlock, _retrieve
+from chainer.links.connection.convolution_2d import Convolution2D
+from chainer.links.connection.linear import Linear
+from chainer.links.normalization.batch_normalization import BatchNormalization
+from chainer.initializers import constant
+import cupy
 
-class ExtractorResNet(ResNetLayers):
+class ExtractorResNet(chainer.link.Chain):
     def __init__(self, pretrained_model='auto', n_layers=50):
-        print('ResNet',n_layers,' initialization')
+        super(ExtractorResNet, self).__init__()
+        print('Extractor ResNet',n_layers,' initialization')
+        kwargs = {'initialW': constant.Zero()}
         if pretrained_model=='auto':
             if n_layers == 50:
                 pretrained_model = 'ResNet-50-model.caffemodel'
+                block = [3, 4, 6, 3]
             elif n_layers == 101:
                 pretrained_model = 'ResNet-101-model.caffemodel'
-        super(ExtractorResNet, self).__init__(pretrained_model, n_layers)
+                block = [3, 4, 23, 3]    
+        with self.init_scope():
+            self.conv1 = Convolution2D(3, 64, 7, 2, 3, **kwargs)
+            self.bn1 = BatchNormalization(64)
+            self.res2 = BuildingBlock(block[0], 64, 64, 256, 1, **kwargs)
+            self.res3 = BuildingBlock(block[1], 256, 128, 512, 2, **kwargs)
+            self.res4 = BuildingBlock(block[2], 512, 256, 1024, 2, **kwargs)
+            self.res5 = BuildingBlock(block[3], 1024, 512, 2048, 1, **kwargs)
+            self.fc6 = Linear(2048, 1000)
+        if pretrained_model and pretrained_model.endswith('.caffemodel'):
+            _retrieve(n_layers, 'ResNet-{}-model.npz'.format(n_layers),
+                      pretrained_model, self)
+        elif pretrained_model:
+            npz.load_npz(pretrained_model, self)
         del self.fc6
-        del self.res5
     def __call__(self, x):
         h = F.relu(self.bn1(self.conv1(x)))
         h = F.max_pooling_2d(h, ksize=3, stride=2)
@@ -33,11 +53,11 @@ class MaskRCNNResNet(MaskRCNN):
     def __init__(self,
                  n_fg_class=None,
                  pretrained_model=None,
-                 min_size=800, max_size=1024,
+                 min_size=800, max_size=1333,
                  ratios=[0.5 ,1, 2], anchor_scales=[2, 4, 8, 16, 32],
                  initialW=None, rpn_initialW=None,
                  loc_initialW=None, score_initialW=None,
-                 proposal_creator_params={"n_test_pre_nms":6000,"n_test_post_nms":1000, "min_size":4},
+                 proposal_creator_params={"n_test_pre_nms":6000,"n_test_post_nms":1000},
                  roi_size=7,
                  class_ids=[],
                  n_layers=50, 
@@ -70,7 +90,7 @@ class MaskRCNNResNet(MaskRCNN):
             n_fg_class + 1,
             roi_size=self.roi_size, spatial_scale=1. / self.feat_stride,
             initialW=initialW, loc_initialW=loc_initialW, score_initialW=score_initialW,
-            roi_align=roi_align
+            roi_align=roi_align, reslayer=extractor.res5
         )
         super(MaskRCNNResNet, self).__init__(
             extractor, rpn, head,
@@ -80,10 +100,10 @@ class MaskRCNNResNet(MaskRCNN):
 
 class MaskRCNNHead(chainer.Chain):
     def __init__(self, n_class, roi_size, spatial_scale,
-                 initialW=None, loc_initialW=None, score_initialW=None, roi_align=True):
+                 initialW=None, loc_initialW=None, score_initialW=None, roi_align=True, reslayer=None):
         super(MaskRCNNHead, self).__init__()
         with self.init_scope():
-            self.res5 = BuildingBlock(3, 1024, 512, 2048, 1, initialW=initialW) 
+            self.res5 = reslayer#BuildingBlock(3, 1024, 512, 2048, 1, initialW=initialW) 
             #class / loc branch
             self.cls_loc = L.Linear(2048, n_class * 4, initialW=initialW)
             self.score = L.Linear(2048, n_class, initialW=score_initialW)
