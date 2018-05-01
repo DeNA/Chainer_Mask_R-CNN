@@ -71,8 +71,7 @@ class MaskRCNN(chainer.Chain):
         scale = self.min_size / min(H, W)
         if scale * max(H, W) > self.max_size:
             scale = self.max_size / max(H, W)
-        if chainer.config.train:
-            img = resize(img, (int(H * scale), int(W * scale)))
+        img = resize(img, (int(H * scale), int(W * scale)))
         img = (img - self.mean).astype(np.float32, copy=False)
         return img
 
