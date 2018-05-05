@@ -59,7 +59,8 @@ class MaskRCNNTrainChain(chainer.Chain):
         _, _, H, W = imgs.shape
         img_size = (H, W)
         #Extractor (VGG) : img -> features
-        features = self.mask_rcnn.extractor(imgs)
+        with chainer.using_config('train', False):
+            features = self.mask_rcnn.extractor(imgs)
 
         #Region Proposal Network : features -> rpn_locs, rpn_scores, rois
         rpn_locs, rpn_scores, rois, roi_indices, anchor = self.mask_rcnn.rpn(
@@ -74,8 +75,9 @@ class MaskRCNNTrainChain(chainer.Chain):
         sample_roi_index = self.xp.zeros((len(sample_roi),), dtype=np.int32)
 
         #Head Network : features, sample_roi -> roi_cls_loc, roi_score
-        roi_cls_loc, roi_score, roi_cls_mask = self.mask_rcnn.head(
-            features, sample_roi, sample_roi_index)
+        with chainer.using_config('train', False):
+            roi_cls_loc, roi_score, roi_cls_mask = self.mask_rcnn.head(
+                features, sample_roi, sample_roi_index)
 
         #RPN losses
         gt_rpn_loc, gt_rpn_label = self.anchor_target_creator(bbox, anchor, img_size)
