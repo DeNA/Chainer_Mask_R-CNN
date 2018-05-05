@@ -57,7 +57,7 @@ class MaskRCNNResNet(MaskRCNN):
                  ratios=[0.5 ,1, 2], anchor_scales=[2, 4, 8, 16, 32],
                  initialW=None, rpn_initialW=None,
                  loc_initialW=None, score_initialW=None,
-                 proposal_creator_params={"n_test_pre_nms":12000,"n_test_post_nms":2000,"min_size":4},
+                 proposal_creator_params={"n_test_pre_nms":6000,"n_test_post_nms": 1000,"min_size":4},
                  roi_size=7,
                  class_ids=[],
                  n_layers=50, 
