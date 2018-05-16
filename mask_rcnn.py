@@ -73,6 +73,7 @@ class MaskRCNN(chainer.Chain):
             scale = self.max_size / max(H, W)
         img = resize(img, (int(H * scale), int(W * scale)))
         img = (img - self.mean).astype(np.float32, copy=False)
+        img = img[::-1, :, :] # RGB to BGR order for resnet pretrained model
         return img
 
     def _suppress(self, raw_cls_bbox, raw_cls_roi, raw_prob, raw_mask):
