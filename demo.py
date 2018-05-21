@@ -23,10 +23,10 @@ def main():
     from mask_rcnn_resnet import MaskRCNNResNet
     from chainercv import utils
     if args.extractor=='resnet50':
-        model = MaskRCNNResNet(n_fg_class=80, roi_size=args.roi_size, n_layers=50, roi_align=args.roialign)
+        model = MaskRCNNResNet(n_fg_class=80, roi_size=args.roi_size, n_layers=50, roi_align=args.roialign, pretrained_model=args.modelfile)
     elif args.extractor=='resnet101':
-        model = MaskRCNNResNet(n_fg_class=80, roi_size=args.roi_size, n_layers=101, roi_align=args.roialign)
-    chainer.serializers.load_npz(args.modelfile, model)
+        model = MaskRCNNResNet(n_fg_class=80, roi_size=args.roi_size, n_layers=101, roi_align=args.roialign, pretrained_model=args.modelfile)
+    #chainer.serializers.load_npz(args.modelfile, model)
     if args.gpu >= 0:
         chainer.cuda.get_device_from_id(args.gpu).use()
         model.to_gpu()
