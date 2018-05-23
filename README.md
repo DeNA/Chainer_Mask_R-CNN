@@ -37,12 +37,8 @@ for model initialization and place it in ~/.chainer/dataset/pfnet/chainer/models
 - COCO 2017 dataset :
 the COCO dataset can be downloaded and unzipped by:
 ```
-bash getData.sh
+bash getcoco.sh
 ```   
-Generate the list file by:   
-```
-python utils/makecocolist.py
-```
 Setup the COCO API:   
 ```
 git clone https://github.com/waleedka/coco
@@ -88,6 +84,13 @@ note that we use a subdivision-based updater to enable training with large batch
 Segment the objects in the input image by executing:   
 ```
 python demo.py --image <input image> --modelfile result/snapshot_model.npz 
+```
+
+### Evaluation
+
+Evaluate the trained model with COCO metric:   
+```
+python train.py --lr 0 --iteration 1 --validation 1 --resume <trained_model> 
 ```
 
 ## Citation

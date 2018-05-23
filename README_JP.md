@@ -37,11 +37,7 @@ $ pip install cupy==1.0.3
 - COCO 2017 データセット
 COCOデータセットのダウンロードと解凍:   
 ```
-bash getData.sh
-```
-リストファイルの生成
-```
-python utils/makecocolist.py
+bash getcoco.sh
 ```
 - COCO APIのセットアップ:   
 ```
@@ -85,6 +81,13 @@ python train.py
 入力画像のインスタンス・セグメンテーションを実行します:   
 ```
 python demo.py --image <input image> --modelfile result/snapshot_model.npz 
+```
+
+### 評価
+
+COCO metricによるモデルの評価を実行します:   
+```
+python train.py --lr 0 --iteration 1 --validation 1 --resume <trained_model> 
 ```
 
 ## 引用
