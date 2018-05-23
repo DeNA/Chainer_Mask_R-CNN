@@ -60,7 +60,7 @@ class MaskRCNN(chainer.Chain):
             self.score_thresh = 0.7
             self.preset = 'visualize'
         elif preset == 'evaluate':
-            self.nms_thresh = 0.3
+            self.nms_thresh = 0.5
             self.score_thresh = 0.05
             self.preset = 'evaluate'
         else:
@@ -126,7 +126,6 @@ class MaskRCNN(chainer.Chain):
                 img_var = chainer.Variable(self.xp.asarray(img[None]))
                 scale = img_var.shape[3] / size[1]
                 roi_cls_locs, roi_scores, rois, _,  roi_masks = self.__call__(img_var, scale=scale)
-           
             #assuming batch size = 1
             roi_cls_loc = roi_cls_locs.data
             roi_score = roi_scores.data
@@ -158,7 +157,7 @@ class MaskRCNN(chainer.Chain):
             elif self.preset == 'visualize':
                 bboxes.append(bbox)
             out_rois.append(out_roi)
-            labels.append([self.class_ids[int(l)-1] for l in label.tolist()])
+            labels.append([self.class_ids[int(l)] for l in label.tolist()])
             scores.append(score)
             masks.append(mask)
 

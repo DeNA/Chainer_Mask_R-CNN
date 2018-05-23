@@ -41,19 +41,18 @@ def parse():
     parser.add_argument('--gpu', '-g', type=int, default=0)
     parser.add_argument('--lr', '-l', type=float, default=1e-4)
     parser.add_argument('--batchsize', '-b', type=int, default=8)
-    parser.add_argument('--unfreeze_bn', action='store_true', default=False, help='update batchnorm layers')
+    parser.add_argument('--freeze_bn', action='store_true', default=False, help='freeze batchnorm gamma/beta')
     parser.add_argument('--out', '-o', default='result',
                         help='Output directory')
     parser.add_argument('--seed', '-s', type=int, default=0)
     parser.add_argument('--roialign', action='store_false', default=True, help='default: True')
-    parser.add_argument('--step_size', '-ss', type=int, default=400000)
-    parser.add_argument('--lr_step', '-ls', type=int, default=480000)
-    parser.add_argument('--lr_initialchange', '-li', type=int, default=800)
+    parser.add_argument('--lr_step', '-ls', type=int, default=120000)
+    parser.add_argument('--lr_initialchange', '-li', type=int, default=400)
     parser.add_argument('--pretrained', '-p', type=str, default='imagenet')
     parser.add_argument('--snapshot', type=int, default=4000)
-    parser.add_argument('--validation', type=int, default=4000)
+    parser.add_argument('--validation', type=int, default=30000)
     parser.add_argument('--resume', type=str)
-    parser.add_argument('--iteration', '-i', type=int, default=800000)
+    parser.add_argument('--iteration', '-i', type=int, default=180000)
     parser.add_argument('--roi_size', '-r', type=int, default=7, help='ROI size for mask head input')
     parser.add_argument('--gamma', type=float, default=1, help='mask loss weight')
     return parser.parse_args()
@@ -67,7 +66,7 @@ class Transform(object):
             img, label, bbox, mask, i = in_data
         elif len(in_data)==4:
             img, bbox, label, i= in_data
-        label = [self.labelids.index(l) + 1 for l in label]
+        label = [self.labelids.index(l) for l in label]
         _, H, W = img.shape
         if chainer.config.train:
             img = self.net.prepare(img)
@@ -141,7 +140,7 @@ def main():
                    trigger=(args.lr_step, 'iteration'))
     if args.resume is not None:
         chainer.serializers.load_npz(args.resume, model.mask_rcnn)
-    if ~args.unfreeze_bn:
+    if args.freeze_bn:
         freeze_bn(model.mask_rcnn)
     log_interval = 40, 'iteration'
     plot_interval = 160, 'iteration'
