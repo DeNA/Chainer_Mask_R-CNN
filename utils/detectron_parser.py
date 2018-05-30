@@ -1,9 +1,6 @@
 import numpy as np
 import os
-#os.chdir('.')
-#print(os.getcwd())
 path = os.path.join(os.path.dirname(__file__), '../')
-print(path)
 import sys
 sys.path.append(path)
 from mask_rcnn_resnet import MaskRCNNResNet
