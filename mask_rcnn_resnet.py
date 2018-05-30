@@ -4,9 +4,9 @@ import chainer
 import chainer.functions as F
 import chainer.links as L
 from mask_rcnn import MaskRCNN
-from chainercv.links.model.faster_rcnn.region_proposal_network import \
-    RegionProposalNetwork
-#from utils.region_proposal_network import RegionProposalNetwork
+#from chainercv.links.model.faster_rcnn.region_proposal_network import \
+#    RegionProposalNetwork
+from utils.region_proposal_network import RegionProposalNetwork
 from utils import roi_align_2d
 from chainer.links.model.vision.resnet import BuildingBlock, _retrieve
 from chainer.links.connection.convolution_2d import Convolution2D
