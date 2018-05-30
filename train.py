@@ -13,7 +13,8 @@ import time
 #from mask_rcnn_vgg import MaskRCNNVGG16
 from mask_rcnn_resnet import MaskRCNNResNet
 from coco_dataset import COCODataset
-from mask_rcnn_train_chain import MaskRCNNTrainChain, freeze_bn
+from mask_rcnn_train_chain import MaskRCNNTrainChain
+from utils.bn_utils import freeze_bn, bn_to_affine
 from utils.cocoapi_evaluator import COCOAPIEvaluator
 from utils.detection_coco_evaluator import DetectionCOCOEvaluator
 import logging
@@ -42,6 +43,7 @@ def parse():
     parser.add_argument('--lr', '-l', type=float, default=1e-4)
     parser.add_argument('--batchsize', '-b', type=int, default=8)
     parser.add_argument('--freeze_bn', action='store_true', default=False, help='freeze batchnorm gamma/beta')
+    parser.add_argument('--bn2affine', action='store_true', default=False, help='batchnorm to affine')
     parser.add_argument('--out', '-o', default='result',
                         help='Output directory')
     parser.add_argument('--seed', '-s', type=int, default=0)
@@ -53,7 +55,7 @@ def parse():
     parser.add_argument('--validation', type=int, default=30000)
     parser.add_argument('--resume', type=str)
     parser.add_argument('--iteration', '-i', type=int, default=180000)
-    parser.add_argument('--roi_size', '-r', type=int, default=7, help='ROI size for mask head input')
+    parser.add_argument('--roi_size', '-r', type=int, default=14, help='ROI size for mask head input')
     parser.add_argument('--gamma', type=float, default=1, help='mask loss weight')
     return parser.parse_args()
 
@@ -142,6 +144,8 @@ def main():
         chainer.serializers.load_npz(args.resume, model.mask_rcnn)
     if args.freeze_bn:
         freeze_bn(model.mask_rcnn)
+    if args.bn2affine:
+        bn_to_affine(model.mask_rcnn)
     log_interval = 40, 'iteration'
     plot_interval = 160, 'iteration'
     print_interval = 40, 'iteration'

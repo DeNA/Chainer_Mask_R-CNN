@@ -6,6 +6,7 @@ import chainer.links as L
 from mask_rcnn import MaskRCNN
 from chainercv.links.model.faster_rcnn.region_proposal_network import \
     RegionProposalNetwork
+#from utils.region_proposal_network import RegionProposalNetwork
 from utils import roi_align_2d
 from chainer.links.model.vision.resnet import BuildingBlock, _retrieve
 from chainer.links.connection.convolution_2d import Convolution2D
@@ -15,7 +16,7 @@ from chainer.initializers import constant
 import cupy
 
 class ExtractorResNet(chainer.link.Chain):
-    def __init__(self, pretrained_model='auto', n_layers=50):
+    def __init__(self, pretrained_model='auto', n_layers=50, roi_size=14):
         super(ExtractorResNet, self).__init__()
         print('Extractor ResNet',n_layers,' initialization')
         kwargs = {'initialW': constant.Zero()}
@@ -27,12 +28,12 @@ class ExtractorResNet(chainer.link.Chain):
                 pretrained_model = 'ResNet-101-model.caffemodel'
                 block = [3, 4, 23, 3]    
         with self.init_scope():
-            self.conv1 = Convolution2D(3, 64, 7, 2, 3, **kwargs)
+            self.conv1 = Convolution2D(3, 64, 7, 2, 3, **kwargs, nobias=True)
             self.bn1 = BatchNormalization(64)
             self.res2 = BuildingBlock(block[0], 64, 64, 256, 1, **kwargs)
             self.res3 = BuildingBlock(block[1], 256, 128, 512, 2, **kwargs)
             self.res4 = BuildingBlock(block[2], 512, 256, 1024, 2, **kwargs)
-            self.res5 = BuildingBlock(block[3], 1024, 512, 2048, 1, **kwargs)
+            self.res5 = BuildingBlock(block[3], 1024, 512, 2048, roi_size//7, **kwargs)
             self.fc6 = Linear(2048, 1000)
         if pretrained_model and pretrained_model.endswith('.caffemodel'):
             _retrieve(n_layers, 'ResNet-{}-model.npz'.format(n_layers),
@@ -42,7 +43,11 @@ class ExtractorResNet(chainer.link.Chain):
         del self.fc6
     def __call__(self, x):
         h = F.relu(self.bn1(self.conv1(x)))
-        h = F.max_pooling_2d(h, ksize=3, stride=2)
+        _, _, H, W = h.shape
+        Hpool = (H + 1)//2
+        Wpool = (W + 1)//2
+        h = F.max_pooling_2d(h, ksize=3, stride=2, pad=1)
+        h = h[:, :, :Hpool, :Wpool]
         h = self.res2(h)
         h = self.res3(h)
         h = self.res4(h)
@@ -58,7 +63,7 @@ class MaskRCNNResNet(MaskRCNN):
                  initialW=None, rpn_initialW=None,
                  loc_initialW=None, score_initialW=None,
                  proposal_creator_params={"n_test_pre_nms":6000,"n_test_post_nms": 1000,"min_size":4},
-                 roi_size=7,
+                 roi_size=14,
                  class_ids=[],
                  n_layers=50, 
                  roi_align=True
@@ -78,7 +83,7 @@ class MaskRCNNResNet(MaskRCNN):
         self.roi_size=roi_size
         if pretrained_model is not None:
             pretrained_model = 'auto'
-        extractor = ExtractorResNet(pretrained_model, n_layers=n_layers)
+        extractor = ExtractorResNet(pretrained_model, n_layers=n_layers, roi_size=roi_size)
         rpn = RegionProposalNetwork(
             1024, 1024,
             ratios=ratios, anchor_scales=anchor_scales,
@@ -110,7 +115,7 @@ class MaskRCNNHead(chainer.Chain):
             self.score = L.Linear(2048, n_class, initialW=score_initialW)
             #Mask-RCNN branch
             self.deconvm1 = L.Deconvolution2D(2048, 256, 2, 2, initialW=initialW)
-            self.convm2 = L.Convolution2D(256, n_class, 3, 1, pad=1,initialW=initialW)
+            self.convm2 = L.Convolution2D(256, n_class, 1, 1, pad=0,initialW=initialW)
 
         self.n_class = n_class
         self.roi_size = roi_size
@@ -135,8 +140,8 @@ class MaskRCNNHead(chainer.Chain):
 
         #ROI, CLS  branch
         hres5 = self.res5(pool)
-        fmap_size = hres5.shape[2:]
-        h = F.average_pooling_2d(hres5, fmap_size, stride=1)
+        #fmap_size = hres5.shape[2:]
+        h = F.average_pooling_2d(hres5, self.roi_size//2, stride=7)#fmap_size, stride=1)
         roi_cls_locs = self.cls_loc(h)
         roi_scores = self.score(h)
 
