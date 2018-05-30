@@ -25,7 +25,7 @@ $ pip install cupy==1.0.3
 - [x] Precision Evaluator (bbox, VOC metric)
 - [x] Precision Evaluator (bbox, COCO metric)
 - [x] Detectron Model Parser 
-- [ ] Detectron Model Demo 
+- [ ] Modify ROIAlign
 - [ ] Precision Evaluator (mask, COCO metric)
 - [ ] Feature Pyramid Network
 - [ ] Keypoint Detection
@@ -62,7 +62,7 @@ python utils\detectron_parser.py
 - `modelfiles` の中に変換されたモデルファイルが保存されます。
 - 以下によりデモを実行
 ```
-python demo.py --bn2affine --modelfile modelfiles/e2e_mask_rcnn_R-50-C4_1x_d2c.npz --image (image_path) 
+python demo.py --bn2affine --modelfile modelfiles/e2e_mask_rcnn_R-50-C4_1x_d2c.npz --image <input image>
 ```
 
 ## 学習

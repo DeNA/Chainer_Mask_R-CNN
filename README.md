@@ -30,7 +30,7 @@ $ pip install cupy
 - [x] Precision Evaluator (bbox, VOC metric)
 - [x] Precision Evaluator (bbox, COCO metric)
 - [x] Detectron Model Parser 
-- [ ] Detectron Model Demo 
+- [ ] Modify ROIAlign
 - [ ] Precision Evaluator (mask, COCO metric)
 - [ ] Feature Pyramid Network
 - [ ] Keypoint Detection
@@ -67,7 +67,7 @@ python utils\detectron_parser.py
 - And the converted model file is saved in `modelfiles`
 - Run the demo:
 ```
-python demo.py --bn2affine --modelfile modelfiles/e2e_mask_rcnn_R-50-C4_1x_d2c.npz --image (image_path) 
+python demo.py --bn2affine --modelfile modelfiles/e2e_mask_rcnn_R-50-C4_1x_d2c.npz --image <input image>
 ```
 
 ## Train
