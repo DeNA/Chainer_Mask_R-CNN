@@ -24,6 +24,8 @@ $ pip install cupy==1.0.3
 ## TODOs
 - [x] Precision Evaluator (bbox, VOC metric)
 - [x] Precision Evaluator (bbox, COCO metric)
+- [x] Detectron Model Parser 
+- [ ] Detectron Model Demo 
 - [ ] Precision Evaluator (mask, COCO metric)
 - [ ] Feature Pyramid Network
 - [ ] Keypoint Detection
@@ -48,6 +50,20 @@ python setup.py install
 cd ../../
 ```
 
+## 学習済みモデルの使用
+
+- [Model Zoo] (https://github.com/facebookresearch/Detectron/blob/master/MODEL_ZOO.md) からモデルファイルをダウンロード
+ ( `End-to-End Faster & Mask R-CNN Baselines` の `R-50-C4	Mask` 行の `model` リンク)   
+- `modelfiles` ディレクトリを作り、ダウンロードした `model_final.pkl` を置く
+- 以下を実行
+```   
+python utils\detectron_parser.py
+```
+- `modelfiles` の中に変換されたモデルファイルが保存されます。
+- 以下によりデモを実行
+```
+python demo.py --bn2affine --modelfile modelfiles/e2e_mask_rcnn_R-50-C4_1x_d2c.npz --image (image_path) 
+```
 
 ## 学習
 
@@ -61,6 +77,8 @@ python train.py
 '--gpu', '-g', type=int, default=0   
 '--lr', '-l', type=float, default=1e-4   
 '--batchsize', '-b', type=int, default=8   
+'--freeze_bn', action='store_true', default=False, help='freeze batchnorm gamma/beta'
+'--bn2affine', action='store_true', default=False, help='batchnorm to affine'
 '--out', '-o', default='result',  help='output directory'   
 '--seed', '-s', type=int, default=0   
 '--roialign', action='store_true', default=True, help='True: ROIAlign, False: ROIpooling'
@@ -69,9 +87,10 @@ python train.py
 '--lr_initialchange', '-li', type=int, default=800     
 '--pretrained', '-p', type=str, default='imagenet'   
 '--snapshot', type=int, default=4000   
+'--validation', type=int, default=30000   
 '--resume', type=str   
 '--iteration', '-i', type=int, default=800000   
-'--roi_size', '-r', type=int, default=7, help='ROI size for mask head input'
+'--roi_size', '-r', type=int, default=14, help='ROI size for mask head input'
 '--gamma', type=float, default=1, help='mask loss balancing factor'   
 ```
 

@@ -22,10 +22,15 @@ $ pip install cupy
 - Matplotlib   
 - OpenCV   
 
+## What's New
+
+- Detectron Model Parser has been added! 
 
 ## TODOs
 - [x] Precision Evaluator (bbox, VOC metric)
 - [x] Precision Evaluator (bbox, COCO metric)
+- [x] Detectron Model Parser 
+- [ ] Detectron Model Demo 
 - [ ] Precision Evaluator (mask, COCO metric)
 - [ ] Feature Pyramid Network
 - [ ] Keypoint Detection
@@ -50,6 +55,21 @@ cd ../../
 note: the official coco repository is not python3 compatible.    
 Use the repository above in order to run our evaluation.    
 
+## Use the Pretrained Model
+
+- Download the pretrained model from the [Model Zoo] (https://github.com/facebookresearch/Detectron/blob/master/MODEL_ZOO.md)   
+ (`model` link of `R-50-C4	Mask` at `End-to-End Faster & Mask R-CNN Baselines`)   
+- Make `modelfiles` directory and put the downloaded file `model_final.pkl` in it   
+- Execute:  
+```   
+python utils\detectron_parser.py
+```
+- And the converted model file is saved in `modelfiles`
+- Run the demo:
+```
+python demo.py --bn2affine --modelfile modelfiles/e2e_mask_rcnn_R-50-C4_1x_d2c.npz --image (image_path) 
+```
+
 ## Train
 
 ```
@@ -62,7 +82,8 @@ arguments and the default conditions are defined as follows:
 '--gpu', '-g', type=int, default=0   
 '--lr', '-l', type=float, default=1e-4   
 '--batchsize', '-b', type=int, default=8   
-'--unfreeze_bn', action='store_true', default=False, help='update batchnorm layers'
+'--freeze_bn', action='store_true', default=False, help='freeze batchnorm gamma/beta'
+'--bn2affine', action='store_true', default=False, help='batchnorm to affine'
 '--out', '-o', default='result',  help='output directory'   
 '--seed', '-s', type=int, default=0   
 '--roialign', action='store_true', default=True, help='True: ROIAlign, False: ROIpooling'
@@ -71,9 +92,10 @@ arguments and the default conditions are defined as follows:
 '--lr_initialchange', '-li', type=int, default=800     
 '--pretrained', '-p', type=str, default='imagenet'   
 '--snapshot', type=int, default=4000   
+'--validation', type=int, default=30000   
 '--resume', type=str   
 '--iteration', '-i', type=int, default=800000   
-'--roi_size', '-r', type=int, default=7, help='ROI size for mask head input'
+'--roi_size', '-r', type=int, default=14, help='ROI size for mask head input'
 '--gamma', type=float, default=1, help='mask loss balancing factor'   
 ```
 
