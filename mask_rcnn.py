@@ -8,6 +8,7 @@ import chainer.functions as F
 from chainercv.links.model.faster_rcnn.utils.loc2bbox import loc2bbox
 from chainercv.utils import non_maximum_suppression
 from chainercv.transforms.image.resize import resize
+import cv2
 
 def bbox_yxyx2xywh(bbox):
     bbox_o = bbox.copy()
@@ -71,7 +72,11 @@ class MaskRCNN(chainer.Chain):
         scale = self.min_size / min(H, W)
         if scale * max(H, W) > self.max_size:
             scale = self.max_size / max(H, W)
-        img = resize(img, (int(H * scale), int(W * scale)))
+        #img = resize(img, (int(H * scale), int(W * scale)))
+        img = img.transpose((1,2,0))
+        img = cv2.resize(img, None, None, fx=scale, fy=scale,
+                    interpolation=cv2.INTER_LINEAR)
+        img = img.transpose((2,0,1))
         img = (img - self.mean).astype(np.float32, copy=False)
         img = img[::-1, :, :] # RGB to BGR order for resnet pretrained model
         return img
@@ -95,7 +100,6 @@ class MaskRCNN(chainer.Chain):
             keep = non_maximum_suppression(cls_bbox_l, self.nms_thresh, prob_l)
             bbox.append(cls_bbox_l[keep])
             roi.append(cls_roi_l[keep])
-            #labels are in [0, self.nclass - 2].
             label.append((l - 1) * np.ones((len(keep),)))
             score.append(prob_l[keep])
             mask.append(mask_l[keep])
@@ -146,12 +150,12 @@ class MaskRCNN(chainer.Chain):
             cls_roi[:, 1::2] = self.xp.clip(cls_roi[:, 1::2], 0, size[1])
 
             prob = F.softmax(roi_score).data
-
             raw_cls_bbox = cuda.to_cpu(cls_bbox)
             raw_cls_roi = cuda.to_cpu(cls_roi)
             raw_prob = cuda.to_cpu(prob)
             raw_mask = cuda.to_cpu(roi_mask)
             bbox, out_roi, label, score, mask = self._suppress(raw_cls_bbox, raw_cls_roi, raw_prob, raw_mask)
+
             if self.preset == 'evaluate':
                 bboxes.append(bbox_yxyx2xywh(bbox))
             elif self.preset == 'visualize':
