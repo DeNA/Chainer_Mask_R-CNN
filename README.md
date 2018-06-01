@@ -25,12 +25,13 @@ $ pip install cupy
 ## What's New
 
 - Detectron Model Parser has been added! 
+- COCO box AP = 0.35 using detectron pretrained model (0.355 with official boxes)
 
 ## TODOs
-- [x] Precision Evaluator (bbox, VOC metric)
 - [x] Precision Evaluator (bbox, COCO metric)
 - [x] Detectron Model Parser 
-- [ ] Modify ROIAlign
+- [x] Modify ROIAlign
+- [ ] Mask inference using refined ROIs
 - [ ] Precision Evaluator (mask, COCO metric)
 - [ ] Feature Pyramid Network
 - [ ] Keypoint Detection
