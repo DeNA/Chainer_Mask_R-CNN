@@ -49,15 +49,11 @@ class ROIAlign2D(function.Function):
         self._bottom_data_shape = inputs[0].shape
 
         bottom_data, bottom_rois = inputs
-        #print(bottom_data.shape, bottom_rois.shape, self.outh)
         #e.g. (batch, channel, h, w)=(1, 512, 38, 53) (n_rois, )=(128, 5)
         channels, height, width = bottom_data.shape[1:]
-        #print(bottom_rois[0], height, width, self.spatial_scale)
         n_rois = bottom_rois.shape[0]
         top_data = cuda.cupy.empty((n_rois, channels, self.outh,
                                     self.outw), dtype=numpy.float32)
-        self.argmax_data = cuda.cupy.empty(top_data.shape, numpy.int32)
-        #pooles_width(height)=7
         cuda.cupy.ElementwiseKernel(
             '''
             raw float32 bottom_data, float32 spatial_scale, int32 channels,
@@ -145,7 +141,7 @@ class ROIAlign2D(function.Function):
         bottom_diff = cuda.cupy.zeros(self._bottom_data_shape, numpy.float32)
         cuda.cupy.ElementwiseKernel(
             '''
-            raw float32 top_diff, raw int32 argmax_data, int32 num_rois,
+            raw float32 top_diff, int32 num_rois,
             float32 spatial_scale, int32 channels, int32 height, int32 width,
             int32 pooled_height, int32 pooled_width, raw float32 bottom_rois
             ''',
@@ -213,12 +209,10 @@ class ROIAlign2D(function.Function):
             }
 
             ''', 'roi_pooling_2d_bwd'
-        )(gy[0], self.argmax_data, bottom_rois.shape[0], self.spatial_scale,
+        )(gy[0], bottom_rois.shape[0], self.spatial_scale,
           channels, height, width, self.outh, self.outw,
           bottom_rois, bottom_diff, size=gy[0].size)
         
-        #bottom_diff.shape : e.g. (1,512, 38,50)
-
         return bottom_diff, None
 
 
