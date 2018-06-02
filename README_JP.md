@@ -6,6 +6,7 @@
 
 ## 実行例
 <img src="imgs/demo.gif" width="400px"></img>
+
 ## 必要環境
 - [Chainer](https://github.com/pfnet/chainer)
 - [Chainercv](https://github.com/chainer/chainercv)
@@ -57,7 +58,7 @@ cd ../../
 - `modelfiles` ディレクトリを作り、ダウンロードした `model_final.pkl` を置く
 - 以下を実行
 ```   
-python utils\detectron_parser.py
+python utils/detectron_parser.py
 ```
 - `modelfiles` の中に変換されたモデルファイルが保存されます。
 - 以下によりデモを実行

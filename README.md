@@ -4,8 +4,14 @@ Chainer implementation of Mask R-CNN - the multi-task network for object detecti
 <a href="README_JP.md">日本語版 README</a>   
 [DeNA Tech Blog(JP)](https://engineer.dena.jp/2017/12/chainercvmask-r-cnn.html)   
 
+## What's New
+
+- Detectron Model Parser has been added! 
+- COCO box AP = 0.35 using detectron pretrained model (0.355 with official boxes)   
+
 ## Examples
 <img src="imgs/demo.gif" width="400px"></img>
+
 ## Requirements
 - [Chainer](https://github.com/pfnet/chainer)
 - [Chainercv](https://github.com/chainer/chainercv)
@@ -21,11 +27,6 @@ $ pip install cupy
 - NumPy   
 - Matplotlib   
 - OpenCV   
-
-## What's New
-
-- Detectron Model Parser has been added! 
-- COCO box AP = 0.35 using detectron pretrained model (0.355 with official boxes)
 
 ## TODOs
 - [x] Precision Evaluator (bbox, COCO metric)
@@ -63,7 +64,7 @@ Use the repository above in order to run our evaluation.
 - Make `modelfiles` directory and put the downloaded file `model_final.pkl` in it   
 - Execute:  
 ```   
-python utils\detectron_parser.py
+python utils/detectron_parser.py
 ```
 - And the converted model file is saved in `modelfiles`
 - Run the demo:
