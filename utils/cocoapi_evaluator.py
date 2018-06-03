@@ -27,7 +27,6 @@ class COCOAPIEvaluator(chainer.training.extensions.Evaluator):
         target = self._targets['main']
 
         annType = ['segm','bbox','keypoints']
-        annType = annType[1]
         if hasattr(iterator, 'reset'):
             iterator.reset()
             it = iterator
@@ -55,19 +54,21 @@ class COCOAPIEvaluator(chainer.training.extensions.Evaluator):
         gt_bboxes = iter(list(gt_bboxes))
         gt_labels = iter(list(gt_labels))
         data_dict = []
-        for i, (pred_bbox, pred_label, pred_score) in \
-            enumerate(zip(pred_bboxes, pred_labels, pred_scores)):
-            for bbox, label, score in zip(pred_bbox, pred_label, pred_score):
-                A={"image_id":int(self.ids[i]), "category_id":int(label), "bbox":bbox.tolist(), "score":float(score)}
+        for i, (pred_bbox, pred_label, pred_score, pred_mask) in \
+            enumerate(zip(pred_bboxes, pred_labels, pred_scores, pred_masks)):
+            for bbox, label, score, mask in zip(pred_bbox, pred_label, pred_score, pred_mask):
+                A={"image_id":int(self.ids[i]), "category_id":int(label), "bbox":bbox.tolist(),
+                 "score":float(score), "segmentation": mask}
                 data_dict.append(A)
         if len(data_dict)>0:
-            cocoGt=self.cocoanns
-            cocoDt=cocoGt.loadRes(data_dict)
-            cocoEval = COCOeval(self.cocoanns, cocoDt, annType)
-            cocoEval.params.imgIds  = [int(id_) for id_ in self.ids]
-            cocoEval.evaluate()
-            cocoEval.accumulate()
-            cocoEval.summarize()
+            for i in range(2):  # 'segm','bbox'
+                cocoGt=self.cocoanns
+                cocoDt=cocoGt.loadRes(data_dict)
+                cocoEval = COCOeval(self.cocoanns, cocoDt, annType[i])
+                cocoEval.params.imgIds  = [int(id_) for id_ in self.ids]
+                cocoEval.evaluate()
+                cocoEval.accumulate()
+                cocoEval.summarize()
             report = {'map': cocoEval.stats[0]} # report COCO AP (IoU=0.5:0:95)
         else:
             report = {'map': 0}
