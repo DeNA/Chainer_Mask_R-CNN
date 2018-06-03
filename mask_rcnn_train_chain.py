@@ -59,8 +59,10 @@ class MaskRCNNTrainChain(chainer.Chain):
 
         #Head Network : features, sample_roi -> roi_cls_loc, roi_score
         with chainer.using_config('train', False):
-            roi_cls_loc, roi_score, roi_cls_mask = self.mask_rcnn.head(
-                features, sample_roi, sample_roi_index)
+            hres5 = self.mask_rcnn.head.res5head(features, sample_roi, sample_roi_index)
+            roi_cls_loc, roi_score = self.mask_rcnn.head.boxhead(hres5)
+            roi_cls_mask = self.mask_rcnn.head.maskhead(hres5)
+            del(hres5)
 
         #RPN losses
         gt_rpn_loc, gt_rpn_label = self.anchor_target_creator(bbox, anchor, img_size)

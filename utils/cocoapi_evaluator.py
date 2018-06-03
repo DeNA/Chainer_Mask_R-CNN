@@ -6,6 +6,7 @@ import chainer.training.extensions
 
 from utils import eval_detection_coco
 from chainercv.utils import apply_prediction_to_iterator
+import pycocotools
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
@@ -38,7 +39,7 @@ class COCOAPIEvaluator(chainer.training.extensions.Evaluator):
         # delete unused iterators explicitly
         del in_values
 
-        pred_bboxes, _, pred_labels, pred_scores, pred_masks = out_values
+        pred_bboxes, pred_labels, pred_scores, pred_masks = out_values
 
         if len(rest_values) == 3:
             gt_bboxes, gt_labels, gt_difficults = rest_values

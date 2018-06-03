@@ -43,8 +43,8 @@ def main():
     if args.bn2affine:
         bn_to_affine(model)
     img = utils.read_image(args.image, color=True)
-    bboxes, rois, labels, scores, masks = model.predict([img])
-    bbox, roi, label, score, mask = bboxes[0], rois[0], np.asarray(labels[0],dtype=np.int32), scores[0], masks[0]
+    bboxes, labels, scores, masks = model.predict([img])
+    bbox, label, score, mask = bboxes[0], np.asarray(labels[0],dtype=np.int32), scores[0], masks[0]
     #print(bbox, np.asarray(label,dtype=np.int32), score, mask)
 
     coco_label_names=('background',  # class zero
@@ -59,7 +59,7 @@ def main():
 
     )
     vis_bbox(
-        img, bbox, roi, label=label, score=score, mask=mask, label_names=coco_label_names, contour=args.contour, labeldisplay=True)
+        img, bbox, label=label, score=score, mask=mask, label_names=coco_label_names, contour=args.contour, labeldisplay=True)
     plot.show()
     filename = "output.png"
     plot.savefig(filename)

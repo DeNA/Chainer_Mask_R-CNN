@@ -7,7 +7,7 @@ Chainer implementation of Mask R-CNN - the multi-task network for object detecti
 ## What's New
 
 - Detectron Model Parser has been added! 
-- COCO box AP = 0.35 using detectron pretrained model (0.355 with official boxes)   
+- COCO box AP = 0.35 using pretrained R-50-C4 model (0.355 with official boxes)   
 
 ## Examples
 <img src="imgs/demo.gif" width="400px"></img>
@@ -32,7 +32,7 @@ $ pip install cupy
 - [x] Precision Evaluator (bbox, COCO metric)
 - [x] Detectron Model Parser 
 - [x] Modify ROIAlign
-- [ ] Mask inference using refined ROIs
+- [x] Mask inference using refined ROIs
 - [ ] Precision Evaluator (mask, COCO metric)
 - [ ] Feature Pyramid Network
 - [ ] Keypoint Detection

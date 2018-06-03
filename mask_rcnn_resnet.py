@@ -13,7 +13,6 @@ from chainer.links.connection.convolution_2d import Convolution2D
 from chainer.links.connection.linear import Linear
 from chainer.links.normalization.batch_normalization import BatchNormalization
 from chainer.initializers import constant
-import cupy
 
 class ExtractorResNet(chainer.link.Chain):
     def __init__(self, pretrained_model='auto', n_layers=50, roi_size=14):
@@ -123,7 +122,8 @@ class MaskRCNNHead(chainer.Chain):
         self.roi_align = roi_align
         print("ROI Align=",roi_align)
 
-    def __call__(self, x, rois, roi_indices):
+    def res5head(self, x, rois, roi_indices):
+        # extracted feature map -> pooling -> res5 block 
         roi_indices = roi_indices.astype(np.float32)
         indices_and_rois = self.xp.concatenate(
             (roi_indices[:, None], rois), axis=1)
@@ -137,18 +137,21 @@ class MaskRCNNHead(chainer.Chain):
             pool = _roi_pooling_2d_yx(
                 x, indices_and_rois, self.roi_size,self.roi_size,
                 self.spatial_scale)
-
-        #ROI, CLS  branch
         hres5 = self.res5(pool)
-        #fmap_size = hres5.shape[2:]
-        h = F.average_pooling_2d(hres5, self.roi_size//2, stride=7)#fmap_size, stride=1)
-        roi_cls_locs = self.cls_loc(h)
-        roi_scores = self.score(h)
+        return hres5
 
-        #Mask-RCNN branch
+    def maskhead(self, hres5):
+        # mask branch
         h = F.relu(self.deconvm1(hres5)) 
         masks=self.convm2(h)
-        return roi_cls_locs, roi_scores, masks
+        return masks
+
+    def boxhead(self, hres5):
+        # box branch
+        h = F.average_pooling_2d(hres5, self.roi_size//2, stride=7)
+        roi_cls_locs = self.cls_loc(h)
+        roi_scores = self.score(h)
+        return roi_cls_locs, roi_scores
 
 def _roi_pooling_2d_yx(x, indices_and_rois, outh, outw, spatial_scale):
     xy_indices_and_rois = indices_and_rois[:, [0, 2, 1, 4, 3]]

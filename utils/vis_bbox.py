@@ -4,7 +4,7 @@ from skimage.measure import find_contours
 from matplotlib.patches import Polygon
 import cv2
 
-def vis_bbox(img, bbox, roi, label=None, score=None, mask=None, label_names=None, ax=None, contour=False, labeldisplay=True):
+def vis_bbox(img, bbox, label=None, score=None, mask=None, label_names=None, ax=None, contour=False, labeldisplay=True):
     """Visualize bounding boxes inside image.
 
     Example:
@@ -58,7 +58,7 @@ def vis_bbox(img, bbox, roi, label=None, score=None, mask=None, label_names=None
         return ax
     COLOR=[(1,1,0), (1,0,1),(0,1,1),(0,0,1),(0,1,0), (1,0,0),(0.1,1,0.2)]
 
-    for i, (bb, r) in enumerate(zip(bbox, roi)):
+    for i, bb in enumerate(bbox):
         #print(label[i])
         #if label[i] >1:
         #    continue
@@ -72,16 +72,16 @@ def vis_bbox(img, bbox, roi, label=None, score=None, mask=None, label_names=None
             padded_mask = np.zeros((img.shape[2], img.shape[1]), dtype=np.uint8)
             resized_mask = cv2.resize(mask[i].T*255,(height, width))
             padded_mask[int(bb[1]):int(bb[3]), int(bb[0]):int(bb[2])] = resized_mask
-            Mcontours = find_contours(padded_mask/255, 0.3)
+            Mcontours = find_contours(padded_mask/255, 0.4)
             for verts in Mcontours:
-                p = Polygon(verts, facecolor="none", edgecolor=[1,1,1])
+                p = Polygon(verts, facecolor="none", edgecolor=[0.5,0.5,0.5])
                 
         #print(M)
         caption = list()
         for my in range(14):
             for mx in range(14):
-                mxy = (int(r[1]+(r[3]-r[1])/14*mx), int(r[0]+(r[2]-r[0])/14*my))
-                mxynext = (int(r[1]+(r[3]-r[1])/14*(mx+1)), int(r[0]+(r[2]-r[0])/14*(my+1)))
+                mxy = (int(bb[1]+(bb[3]-bb[1])/14*mx), int(bb[0]+(bb[2]-bb[0])/14*my))
+                mxynext = (int(bb[1]+(bb[3]-bb[1])/14*(mx+1)), int(bb[0]+(bb[2]-bb[0])/14*(my+1)))
                 Mcolor=np.clip((M[my,mx])*1,0,0.5)
                 #print(Mcolor)
                 ax.add_patch(plot.Rectangle(mxy, mxynext[0]-mxy[0], mxynext[1]-mxy[1],
@@ -103,5 +103,6 @@ def vis_bbox(img, bbox, roi, label=None, score=None, mask=None, label_names=None
                     ': '.join(caption),
                     style='italic',
                     fontsize=8,
-                    bbox={'facecolor': 'white', 'alpha': 0.7, 'pad': 10})
+                    color='white'
+                    )#'facecolor': 'white', 'alpha': 0.7, 'pad': 10})
     return ax

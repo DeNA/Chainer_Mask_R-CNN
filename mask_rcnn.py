@@ -9,14 +9,8 @@ from chainercv.links.model.faster_rcnn.utils.loc2bbox import loc2bbox
 from chainercv.utils import non_maximum_suppression
 from chainercv.transforms.image.resize import resize
 import cv2
-
-def bbox_yxyx2xywh(bbox):
-    bbox_o = bbox.copy()
-    bbox_o[:, 0] = bbox[:, 1]
-    bbox_o[:, 2] = bbox[:, 3] - bbox[:, 1]
-    bbox_o[:, 1] = bbox[:, 0]
-    bbox_o[:, 3] = bbox[:, 2] - bbox[:, 0]
-    return bbox_o
+import pycocotools
+from utils.box_utils import bbox_yxyx2xywh, im_mask
 
 class MaskRCNN(chainer.Chain):
     def __init__(self, extractor, rpn, head, mean,
@@ -51,9 +45,9 @@ class MaskRCNN(chainer.Chain):
         h = self.extractor(x) #VGG
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.rpn(h, img_size, scale) #Region Proposal Network
-        roi_cls_locs, roi_scores, masks = self.head(
-            h, rois, roi_indices) #Heads
-        return roi_cls_locs, roi_scores, rois, roi_indices, masks
+        hres5 = self.head.res5head(h, rois, roi_indices)
+        roi_cls_locs, roi_scores = self.head.boxhead(hres5)
+        return roi_cls_locs, roi_scores, rois, roi_indices, h
 
     def use_preset(self, preset):
         if preset == 'visualize':
@@ -81,7 +75,7 @@ class MaskRCNN(chainer.Chain):
         img = img[::-1, :, :] # RGB to BGR order for resnet pretrained model
         return img
 
-    def _suppress(self, raw_cls_bbox, raw_cls_roi, raw_prob, raw_mask):
+    def _suppress(self, raw_cls_bbox, raw_cls_roi, raw_prob):
         bbox = list()
         roi = list()
         label = list()
@@ -95,20 +89,16 @@ class MaskRCNN(chainer.Chain):
             cls_bbox_l = cls_bbox_l[lmask]
             cls_roi_l = cls_roi_l[lmask]
             prob_l = prob_l[lmask]
-            mask_l = raw_mask[:,l]
-            mask_l = mask_l[lmask]
             keep = non_maximum_suppression(cls_bbox_l, self.nms_thresh, prob_l)
             bbox.append(cls_bbox_l[keep])
             roi.append(cls_roi_l[keep])
             label.append((l - 1) * np.ones((len(keep),)))
             score.append(prob_l[keep])
-            mask.append(mask_l[keep])
         bbox = np.concatenate(bbox, axis=0).astype(np.float32)
         roi = np.concatenate(roi, axis=0).astype(np.float32)
         label = np.concatenate(label, axis=0).astype(np.float32)
         score = np.concatenate(score, axis=0).astype(np.float32)
-        mask = np.concatenate(mask, axis=0).astype(np.float32)
-        return bbox, roi,  label, score, mask
+        return bbox, roi, label, score
 
     def predict(self, imgs):
         prepared_imgs = list()
@@ -129,11 +119,10 @@ class MaskRCNN(chainer.Chain):
                 chainer.function.no_backprop_mode():
                 img_var = chainer.Variable(self.xp.asarray(img[None]))
                 scale = img_var.shape[3] / size[1]
-                roi_cls_locs, roi_scores, rois, _,  roi_masks = self.__call__(img_var, scale=scale)
+                roi_cls_locs, roi_scores, rois, _,  h = self.__call__(img_var, scale=scale)
             #assuming batch size = 1
             roi_cls_loc = roi_cls_locs.data
             roi_score = roi_scores.data
-            roi_mask = F.sigmoid(roi_masks).data
             roi = rois / scale
             mean = self.xp.tile(self.xp.asarray(self.loc_normalize_mean), self.n_class)
             std = self.xp.tile(self.xp.asarray(self.loc_normalize_std), self.n_class)
@@ -153,17 +142,29 @@ class MaskRCNN(chainer.Chain):
             raw_cls_bbox = cuda.to_cpu(cls_bbox)
             raw_cls_roi = cuda.to_cpu(cls_roi)
             raw_prob = cuda.to_cpu(prob)
-            raw_mask = cuda.to_cpu(roi_mask)
-            bbox, out_roi, label, score, mask = self._suppress(raw_cls_bbox, raw_cls_roi, raw_prob, raw_mask)
-
-            if self.preset == 'evaluate':
-                bboxes.append(bbox_yxyx2xywh(bbox))
-            elif self.preset == 'visualize':
-                bboxes.append(bbox)
-            out_rois.append(out_roi)
+            bbox, out_roi, label, score = self._suppress(raw_cls_bbox, raw_cls_roi, raw_prob)
+            mask=[]
+            if len(bbox) > 0:
+                # mask head
+                roi_indices = self.xp.zeros((len(bbox),), dtype=np.int32)
+                with chainer.using_config('train', False), \
+                    chainer.function.no_backprop_mode():
+                    hres5 = self.head.res5head(h, cuda.to_gpu(bbox * scale), roi_indices)
+                    roi_masks = self.head.maskhead(hres5)
+                roi_mask = F.sigmoid(roi_masks).data
+                raw_mask = cuda.to_cpu(roi_mask)
+                # postprocess 
+                if self.preset == 'evaluate':
+                    bboxes.append(bbox_yxyx2xywh(bbox))
+                    for ii, l in enumerate(label):
+                        mask.append(raw_mask[ii,int(l+1)])
+                elif self.preset == 'visualize':
+                    bboxes.append(bbox)
+                    for ii, l in enumerate(label):
+                        mask.append(raw_mask[ii,int(l+1)])
             labels.append([self.class_ids[int(l)] for l in label.tolist()])
             scores.append(score)
             masks.append(mask)
 
-        return bboxes, out_rois, labels, scores, masks
+        return bboxes, labels, scores, masks
 
