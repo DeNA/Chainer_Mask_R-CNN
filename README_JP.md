@@ -2,8 +2,6 @@
 マルチタスク検出器Mask R-CNNのchainer実装
 (https://arxiv.org/abs/1703.06870)   
 
-[DeNA Tech Blogでの解説](https://engineer.dena.jp/2017/12/chainercvmask-r-cnn.html)
-
 ## 実行例
 <img src="imgs/demo.gif" width="400px"></img>
 
@@ -26,12 +24,27 @@ $ pip install cupy==1.0.3
 - [x] Precision Evaluator (bbox, COCO metric)
 - [x] Detectron Model Parser 
 - [x] Modify ROIAlign
-- [ ] Mask inference using refined ROIs
-- [ ] Precision Evaluator (mask, COCO metric)
-- [ ] Feature Pyramid Network
-- [ ] Keypoint Detection
+- [x] Mask inference using refined ROIs
+- [x] Precision Evaluator (mask, COCO metric)
+- [ ] Feature Pyramid Network (R-50-FPN)
+- [ ] Keypoint Detection (R-50-FPN, Keypoints)
 
-## ファイル準備
+## 学習済みモデルの使用
+
+- [Model Zoo] (https://github.com/facebookresearch/Detectron/blob/master/MODEL_ZOO.md) からモデルファイルをダウンロード
+ ( `End-to-End Faster & Mask R-CNN Baselines` の `R-50-C4	Mask` 行の `model` リンク)   
+- `modelfiles` ディレクトリを作り、ダウンロードした `model_final.pkl` を置く
+- 以下を実行
+```   
+python utils/detectron_parser.py
+```
+- `modelfiles` の中に変換されたモデルファイルが保存されます。
+- 以下によりデモを実行
+```
+python demo.py --bn2affine --modelfile modelfiles/e2e_mask_rcnn_R-50-C4_1x_d2c.npz --image <input image>
+```
+
+## 学習のための準備
 - 学習済みモデルのダウンロード  
 ・以下リンク先の'OneDrive download'から、ResNet-50-model.caffemodelをダウンロード
  [ResNet pretrained models](https://github.com/KaimingHe/deep-residual-networks#models)
@@ -49,21 +62,6 @@ cd coco/PythonAPI/
 make
 python setup.py install
 cd ../../
-```
-
-## 学習済みモデルの使用
-
-- [Model Zoo] (https://github.com/facebookresearch/Detectron/blob/master/MODEL_ZOO.md) からモデルファイルをダウンロード
- ( `End-to-End Faster & Mask R-CNN Baselines` の `R-50-C4	Mask` 行の `model` リンク)   
-- `modelfiles` ディレクトリを作り、ダウンロードした `model_final.pkl` を置く
-- 以下を実行
-```   
-python utils/detectron_parser.py
-```
-- `modelfiles` の中に変換されたモデルファイルが保存されます。
-- 以下によりデモを実行
-```
-python demo.py --bn2affine --modelfile modelfiles/e2e_mask_rcnn_R-50-C4_1x_d2c.npz --image <input image>
 ```
 
 ## 学習
@@ -105,7 +103,8 @@ python demo.py --image <input image> --modelfile result/snapshot_model.npz
 
 ### 評価
 
-COCO metricによるモデルの評価を実行します:   
+COCO metric (Bounding Box, Segmentation) によるモデルの評価を実行します。
+
 ```
 python train.py --lr 0 --iteration 1 --validation 1 --resume <trained_model> 
 ```

@@ -2,7 +2,6 @@
 Chainer implementation of Mask R-CNN - the multi-task network for object detection, object classification, and instance segmentation.
 (https://arxiv.org/abs/1703.06870)   
 <a href="README_JP.md">日本語版 README</a>   
-[DeNA Tech Blog(JP)](https://engineer.dena.jp/2017/12/chainercvmask-r-cnn.html)   
 
 ## What's New
 
@@ -38,7 +37,22 @@ $ pip install cupy
 - [ ] Feature Pyramid Network (R-50-FPN)
 - [ ] Keypoint Detection (R-50-FPN, Keypoints)
 
-## Prerequisite
+## Inference with the Pretrained Model
+
+- Download the pretrained model from the [Model Zoo] (https://github.com/facebookresearch/Detectron/blob/master/MODEL_ZOO.md)   
+ (`model` link of `R-50-C4	Mask` at `End-to-End Faster & Mask R-CNN Baselines`)   
+- Make `modelfiles` directory and put the downloaded file `model_final.pkl` in it   
+- Execute:  
+```   
+python utils/detectron_parser.py
+```
+- And the converted model file is saved in `modelfiles`
+- Run the demo:
+```
+python demo.py --bn2affine --modelfile modelfiles/e2e_mask_rcnn_R-50-C4_1x_d2c.npz --image <input image>
+```
+
+## Prerequisites for training
 - Download 'ResNet-50-model.caffemodel' from the "OneDrive download" of [ResNet pretrained models](https://github.com/KaimingHe/deep-residual-networks#models) 
 for model initialization and place it in ~/.chainer/dataset/pfnet/chainer/models/
 
@@ -57,21 +71,6 @@ cd ../../
 ```
 note: the official coco repository is not python3 compatible.    
 Use the repository above in order to run our evaluation.    
-
-## Use the Pretrained Model
-
-- Download the pretrained model from the [Model Zoo] (https://github.com/facebookresearch/Detectron/blob/master/MODEL_ZOO.md)   
- (`model` link of `R-50-C4	Mask` at `End-to-End Faster & Mask R-CNN Baselines`)   
-- Make `modelfiles` directory and put the downloaded file `model_final.pkl` in it   
-- Execute:  
-```   
-python utils/detectron_parser.py
-```
-- And the converted model file is saved in `modelfiles`
-- Run the demo:
-```
-python demo.py --bn2affine --modelfile modelfiles/e2e_mask_rcnn_R-50-C4_1x_d2c.npz --image <input image>
-```
 
 ## Train
 
@@ -113,7 +112,7 @@ python demo.py --image <input image> --modelfile result/snapshot_model.npz
 
 ### Evaluation
 
-Evaluate the trained model with COCO metric:   
+Evaluate the trained model with COCO metric (bounding box, segmentation) :   
 ```
 python train.py --lr 0 --iteration 1 --validation 1 --resume <trained_model> 
 ```
