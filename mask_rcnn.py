@@ -165,8 +165,10 @@ class MaskRCNN(chainer.Chain):
                         mask.append(wm)
                 elif self.preset == 'visualize':
                     bboxes.append(bbox)
-                    for ii, l in enumerate(label):
-                        mask.append(raw_mask[ii,int(l+1)])
+                    wmasks = []
+                    for m, b, l in zip(raw_mask, bbox, label):
+                        wm = im_mask(m[int(l+1)], size, b)
+                        mask.append(wm)
             elif self.preset == 'evaluate':
                 # len(bbox) = 0
                 wm = np.zeros((size[0], size[1]), dtype=np.uint8)

@@ -98,7 +98,7 @@ python train.py
 ## デモ
 入力画像のインスタンス・セグメンテーションを実行します:   
 ```
-python demo.py --image <input image> --modelfile result/snapshot_model.npz 
+python demo.py --image <input image> --modelfile result/snapshot_model.npz --contour  
 ```
 
 ### 評価

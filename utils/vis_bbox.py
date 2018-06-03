@@ -50,44 +50,41 @@ def vis_bbox(img, bbox, label=None, score=None, mask=None, label_names=None, ax=
     if score is not None and not len(bbox) == len(score):
         raise ValueError('The length of score must be same as that of bbox')
 
+    # alpha-blend the masks
+    COLOR=[(1,1,0), (1,0,1),(0,1,1),(0,0,1),(0,1,0), (1,0,0),(0.1,1,0.2)]
+    dst = img.astype(float)
+    for i, m in enumerate(mask):
+        alpha = np.tile(np.round(m), (3, 1, 1)).astype(float) * 0.4
+        src1 = np.ones(dst.shape).astype(float)
+        for j, col in enumerate(COLOR[i%len(COLOR)]):
+            src1[j] *= col * 255
+        dst = cv2.multiply(src1, alpha) + cv2.multiply(dst, 1 - alpha)
+
     # Returns newly instantiated matplotlib.axes.Axes object if ax is None
-    ax = vis_image(img, ax=ax)
+    ax = vis_image(dst, ax=ax)
 
     # If there is no bounding box to display, visualize the image and exit.
     if len(bbox) == 0:
         return ax
-    COLOR=[(1,1,0), (1,0,1),(0,1,1),(0,0,1),(0,1,0), (1,0,0),(0.1,1,0.2)]
 
+    # add boxes, contours and labels
     for i, bb in enumerate(bbox):
-        #print(label[i])
-        #if label[i] >1:
-        #    continue
+        # boxes
         xy = (bb[1], bb[0])
         height = int(bb[2]) - int(bb[0])
         width = int(bb[3]) - int(bb[1])
         ax.add_patch(plot.Rectangle(
             xy, width, height, fill=False, edgecolor='red', linewidth=1))
-        if mask is not None:
-            M=mask[i]
-            padded_mask = np.zeros((img.shape[2], img.shape[1]), dtype=np.uint8)
-            resized_mask = cv2.resize(mask[i].T*255,(height, width))
-            padded_mask[int(bb[1]):int(bb[3]), int(bb[0]):int(bb[2])] = resized_mask
-            Mcontours = find_contours(padded_mask/255, 0.4)
+        
+        # contours
+        if contour:
+            Mcontours = find_contours(mask[i].T, 0.5)
             for verts in Mcontours:
                 p = Polygon(verts, facecolor="none", edgecolor=[0.5,0.5,0.5])
-                
-        #print(M)
+                ax.add_patch(p)
+        
+        #labels
         caption = list()
-        for my in range(14):
-            for mx in range(14):
-                mxy = (int(bb[1]+(bb[3]-bb[1])/14*mx), int(bb[0]+(bb[2]-bb[0])/14*my))
-                mxynext = (int(bb[1]+(bb[3]-bb[1])/14*(mx+1)), int(bb[0]+(bb[2]-bb[0])/14*(my+1)))
-                Mcolor=np.clip((M[my,mx])*1,0,0.5)
-                #print(Mcolor)
-                ax.add_patch(plot.Rectangle(mxy, mxynext[0]-mxy[0], mxynext[1]-mxy[1],
-                fill=True, linewidth=0,facecolor=COLOR[i%len(COLOR)], alpha=Mcolor))
-                if contour:
-                    ax.add_patch(p)
         if label is not None and label_names is not None:
             lb = label[i]
             print(lb)

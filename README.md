@@ -107,7 +107,7 @@ note that we use a subdivision-based updater to enable training with large batch
 ## Demo
 Segment the objects in the input image by executing:   
 ```
-python demo.py --image <input image> --modelfile result/snapshot_model.npz 
+python demo.py --image <input image> --modelfile result/snapshot_model.npz --contour
 ```
 
 ### Evaluation
