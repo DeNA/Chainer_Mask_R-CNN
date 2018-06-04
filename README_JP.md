@@ -3,7 +3,7 @@
 (https://arxiv.org/abs/1703.06870)   
 
 ## 実行例
-<img src="imgs/demo.gif" width="400px"></img>
+- 準備中
 
 ## 必要環境
 - [Chainer](https://github.com/pfnet/chainer)

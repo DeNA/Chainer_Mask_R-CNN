@@ -10,7 +10,7 @@ Chainer implementation of Mask R-CNN - the multi-task network for object detecti
 - COCO mask AP = 0.295 using pretrained R-50-C4 model (0.314 with official masks)   
 
 ## Examples
-<img src="imgs/demo.gif" width="400px"></img>
+- to be updated
 
 ## Requirements
 - [Chainer](https://github.com/pfnet/chainer)
@@ -37,7 +37,7 @@ $ pip install cupy
 - [ ] Feature Pyramid Network (R-50-FPN)
 - [ ] Keypoint Detection (R-50-FPN, Keypoints)
 
-## Inference with the Pretrained Model
+## Inference with Pretrained Models
 
 - Download the pretrained model from the [Model Zoo] (https://github.com/facebookresearch/Detectron/blob/master/MODEL_ZOO.md)   
  (`model` link of `R-50-C4	Mask` at `End-to-End Faster & Mask R-CNN Baselines`)   
@@ -110,7 +110,7 @@ Segment the objects in the input image by executing:
 python demo.py --image <input image> --modelfile result/snapshot_model.npz --contour
 ```
 
-### Evaluation
+## Evaluation
 
 Evaluate the trained model with COCO metric (bounding box, segmentation) :   
 ```
