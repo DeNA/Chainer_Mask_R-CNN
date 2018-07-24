@@ -5,9 +5,9 @@ Chainer implementation of Mask R-CNN - the multi-task network for object detecti
 
 ## What's New
 
-- Detectron Model Parser has been added! 
-- COCO box AP = 0.35 using pretrained R-50-C4 model (0.355 with official boxes)   
-- COCO mask AP = 0.295 using pretrained R-50-C4 model (0.314 with official masks)   
+- Training result for R-50-C4 model has been evaluated!
+- COCO box AP = 0.346 using our trainer (0.355 with official boxes) 
+- COCO mask AP = 0.287 using our trainer (0.314 with official boxes) 
 
 ## Examples
 - to be updated
@@ -36,6 +36,15 @@ $ pip install cupy
 - [x] Precision Evaluator (mask, COCO metric)
 - [ ] Feature Pyramid Network (R-50-FPN)
 - [ ] Keypoint Detection (R-50-FPN, Keypoints)
+
+## Benchmark Results
+
+<table><tbody>
+<tr><th align="left" bgcolor=#f8f8f8> </th>     <td bgcolor=white> Box AP 50:95</td><td bgcolor=white> Segm AP 50:95</td></tr>
+<tr><th align="left" bgcolor=#f8f8f8>Ours (1 GPU)</th> <td bgcolor=white> 0.346 </td><td bgcolor=white> 0.287 </td></tr>
+<tr><th align="left" bgcolor=#f8f8f8>Detectron model</th> <td bgcolor=white> 0.350 </td><td bgcolor=white> 0.295 </td></tr>
+<tr><th align="left" bgcolor=#f8f8f8>Detectron caffe2</th> <td bgcolor=white> 0.355 </td><td bgcolor=white> 0.314 </td></tr>
+</table></tbody>
 
 ## Inference with Pretrained Models
 
