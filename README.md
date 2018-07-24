@@ -34,6 +34,7 @@ $ pip install cupy
 - [x] Modify ROIAlign
 - [x] Mask inference using refined ROIs
 - [x] Precision Evaluator (mask, COCO metric)
+- [ ] Improve segmentation AP for R-50-C4 model
 - [ ] Feature Pyramid Network (R-50-FPN)
 - [ ] Keypoint Detection (R-50-FPN, Keypoints)
 
